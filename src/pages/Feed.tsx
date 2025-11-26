@@ -6,6 +6,7 @@ import React from 'react';
 import { Header } from '../components/layout/Header';
 import { BottomNav } from '../components/layout/BottomNav';
 import { StoryCarousel } from '../components/features/StoryCircle';
+import { StoryViewer } from '../components/features/StoryViewer';
 import { FeedGrid } from '../components/layout/FeedGrid';
 import { supabase } from '../lib/supabase';
 import type { Post, User, Story } from '../types';
@@ -17,6 +18,9 @@ export const Feed: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(true);
   const [hasMore, setHasMore] = React.useState(true);
   const [page, setPage] = React.useState(0);
+  const [viewerStories, setViewerStories] = React.useState<Story[]>([]);
+  const [viewerInitialIndex, setViewerInitialIndex] = React.useState(0);
+  const [isViewerOpen, setIsViewerOpen] = React.useState(false);
 
   // Fetch current user
   React.useEffect(() => {
@@ -70,12 +74,66 @@ export const Feed: React.FC = () => {
   // Fetch stories
   React.useEffect(() => {
     const fetchStories = async () => {
-      // TODO: Implement stories query
-      // For now, empty array
-      setStories([]);
+      try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Fetch active stories (not expired)
+        const { data, error } = await supabase
+          .from('stories')
+          .select('*, user:users(*)')
+          .gt('expires_at', new Date().toISOString())
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching stories:', error);
+          return;
+        }
+
+        if (data) {
+          // Group stories by user
+          const storyMap = new Map<string, { user: User; story: Story; isViewed: boolean }>();
+          
+          data.forEach((story) => {
+            if (story.user && !storyMap.has(story.user.id)) {
+              storyMap.set(story.user.id, {
+                user: story.user,
+                story: story as Story,
+                isViewed: false, // TODO: Track viewed stories in local storage or DB
+              });
+            }
+          });
+
+          setStories(Array.from(storyMap.values()));
+        }
+      } catch (error) {
+        console.error('Error fetching stories:', error);
+      }
     };
 
     fetchStories();
+
+    // Subscribe to new stories
+    const channel = supabase
+      .channel('stories_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'stories',
+        },
+        () => {
+          // Refresh stories when new one is added
+          fetchStories();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Initial load
@@ -112,6 +170,19 @@ export const Feed: React.FC = () => {
     fetchPosts(nextPage);
   };
 
+  // Handle story click
+  const handleStoryClick = (stories: Story[], startIndex: number) => {
+    setViewerStories(stories);
+    setViewerInitialIndex(startIndex);
+    setIsViewerOpen(true);
+  };
+
+  // Handle story viewer close
+  const handleViewerClose = () => {
+    setIsViewerOpen(false);
+    setViewerStories([]);
+  };
+
   return (
     <div className="min-h-screen bg-black pb-20">
       <Header showSearch={true} />
@@ -121,7 +192,17 @@ export const Feed: React.FC = () => {
         <StoryCarousel
           stories={stories}
           currentUser={currentUser || undefined}
+          onStoryClick={handleStoryClick}
           className="border-b border-white/10"
+        />
+      )}
+
+      {/* Story Viewer */}
+      {isViewerOpen && viewerStories.length > 0 && (
+        <StoryViewer
+          stories={viewerStories}
+          initialIndex={viewerInitialIndex}
+          onClose={handleViewerClose}
         />
       )}
 

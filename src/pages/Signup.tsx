@@ -5,6 +5,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
+import { Logo } from '../components/ui/Logo';
 import { signUp } from '../lib/supabase';
 
 export const Signup: React.FC = () => {
@@ -51,12 +52,13 @@ export const Signup: React.FC = () => {
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="text-5xl font-bold text-white flex items-center justify-center gap-2 mb-2">
-            <span className="text-gold-400">⚜️</span>
-            <span>Zyeuté</span>
-          </div>
-          <p className="text-white/60">Rejoins la communauté québécoise</p>
+        <div className="text-center mb-8 flex flex-col items-center">
+          <Logo size="xl" showText={false} linkTo={null} className="mb-4" />
+          <h1 className="text-4xl font-bold text-white mb-2">Zyeuté</h1>
+          <p className="text-gold-400 text-sm font-semibold tracking-wider mb-1">
+            REJOINS LA COMMUNAUTÉ QUÉBÉCOISE
+          </p>
+          <p className="text-white/60 text-sm">Fait au Québec, pour le Québec 🇨🇦⚜️</p>
         </div>
 
         {/* Signup Form */}

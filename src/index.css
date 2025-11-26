@@ -2,10 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --edge-color: #F5C842;
+  --glow-intensity: 50%;
+}
+
 @layer base {
-  * {
-    @apply border-border;
-  }
   body {
     @apply bg-black text-white;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -49,4 +51,184 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Edge Lighting Effects */
+  .edge-glow {
+    box-shadow: 
+      0 0 10px var(--edge-color),
+      0 0 20px var(--edge-color),
+      0 0 30px var(--edge-color),
+      inset 0 0 10px var(--edge-color);
+    border: 1px solid var(--edge-color);
+  }
+
+  .edge-glow-subtle {
+    box-shadow: 
+      0 0 5px rgba(var(--edge-color), calc(var(--glow-intensity) / 100)),
+      0 0 10px rgba(var(--edge-color), calc(var(--glow-intensity) / 150));
+    border: 1px solid rgba(var(--edge-color), 0.3);
+  }
+
+  .edge-glow-strong {
+    box-shadow: 
+      0 0 15px var(--edge-color),
+      0 0 30px var(--edge-color),
+      0 0 45px var(--edge-color),
+      0 0 60px var(--edge-color),
+      inset 0 0 15px var(--edge-color);
+    border: 2px solid var(--edge-color);
+  }
+
+  /* Animated Edge Lighting */
+  @keyframes edge-pulse {
+    0%, 100% {
+      box-shadow: 
+        0 0 10px var(--edge-color),
+        0 0 20px var(--edge-color),
+        0 0 30px var(--edge-color),
+        inset 0 0 10px var(--edge-color);
+    }
+    50% {
+      box-shadow: 
+        0 0 15px var(--edge-color),
+        0 0 30px var(--edge-color),
+        0 0 45px var(--edge-color),
+        0 0 60px var(--edge-color),
+        inset 0 0 15px var(--edge-color);
+    }
+  }
+
+  @keyframes edge-wave {
+    0% {
+      box-shadow: 
+        0 0 10px var(--edge-color),
+        5px 0 20px var(--edge-color),
+        -5px 0 20px transparent;
+    }
+    33% {
+      box-shadow: 
+        0 5px 10px var(--edge-color),
+        0 10px 20px var(--edge-color),
+        0 -10px 20px transparent;
+    }
+    66% {
+      box-shadow: 
+        -5px 0 10px var(--edge-color),
+        -10px 0 20px var(--edge-color),
+        10px 0 20px transparent;
+    }
+    100% {
+      box-shadow: 
+        0 0 10px var(--edge-color),
+        5px 0 20px var(--edge-color),
+        -5px 0 20px transparent;
+    }
+  }
+
+  .edge-animated .edge-glow {
+    animation: edge-pulse 3s ease-in-out infinite;
+  }
+
+  .edge-animated .edge-glow-strong {
+    animation: edge-pulse 2s ease-in-out infinite;
+  }
+
+  /* Edge Glow on Hover */
+  .edge-hover:hover {
+    box-shadow: 
+      0 0 15px var(--edge-color),
+      0 0 30px var(--edge-color),
+      0 0 45px var(--edge-color);
+    border-color: var(--edge-color);
+    transition: all 0.3s ease;
+  }
+
+  /* Card with Edge Lighting */
+  .card-edge {
+    position: relative;
+    border-radius: 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+  }
+
+  .card-edge::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 1rem;
+    padding: 2px;
+    background: linear-gradient(45deg, var(--edge-color), transparent, var(--edge-color));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.6;
+  }
+
+  .edge-animated .card-edge::before {
+    animation: edge-wave 4s linear infinite;
+  }
+}
+
+@layer components {
+  /* Preset theme classes */
+  .theme-gold {
+    --edge-color: #F5C842;
+  }
+  
+  .theme-blue {
+    --edge-color: #0066CC;
+  }
+  
+  .theme-red {
+    --edge-color: #E63946;
+  }
+  
+  .theme-green {
+    --edge-color: #2A9D8F;
+  }
+  
+  .theme-purple {
+    --edge-color: #9D4EDD;
+  }
+  
+  .theme-orange {
+    --edge-color: #FF6B35;
+  }
+  
+  .theme-pink {
+    --edge-color: #F72585;
+  }
+  
+  .theme-cyan {
+    --edge-color: #00D9FF;
+  }
+}
+
+/* Logo and loading animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
 }

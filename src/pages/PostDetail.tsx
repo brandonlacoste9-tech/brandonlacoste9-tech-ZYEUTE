@@ -8,8 +8,12 @@ import { Header } from '../components/layout/Header';
 import { Avatar } from '../components/ui/Avatar';
 import { Button } from '../components/ui/Button';
 import { FireRating } from '../components/features/FireRating';
+import { VideoPlayer } from '../components/features/VideoPlayer';
+import { CommentThread } from '../components/features/CommentThread';
+import { GiftModal } from '../components/features/GiftModal';
 import { supabase } from '../lib/supabase';
 import { formatNumber, getTimeAgo } from '../lib/utils';
+import { toast } from '../components/ui/Toast';
 import type { Post, Comment as CommentType, User } from '../types';
 
 export const PostDetail: React.FC = () => {
@@ -22,6 +26,7 @@ export const PostDetail: React.FC = () => {
   const [newComment, setNewComment] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(true);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isGiftModalOpen, setIsGiftModalOpen] = React.useState(false);
 
   // Fetch current user
   React.useEffect(() => {
@@ -80,6 +85,7 @@ export const PostDetail: React.FC = () => {
         .from('comments')
         .select('*, user:users(*)')
         .eq('post_id', id)
+        .is('parent_id', null) // Only fetch top-level comments
         .order('created_at', { ascending: true });
 
       if (data) setComments(data);
@@ -167,14 +173,15 @@ export const PostDetail: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="grid md:grid-cols-2 gap-6">
           {/* Media */}
-          <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-900">
+          <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-900 edge-glow">
             {post.type === 'video' ? (
-              <video
+              <VideoPlayer
                 src={post.media_url}
-                controls
-                autoPlay
-                loop
-                className="w-full h-full object-cover"
+                poster={post.media_url}
+                autoPlay={true}
+                muted={false}
+                loop={true}
+                className="w-full h-full"
               />
             ) : (
               <img
@@ -203,9 +210,18 @@ export const PostDetail: React.FC = () => {
                     {getTimeAgo(new Date(post.created_at))}
                   </p>
                 </div>
-                <Button variant="outline" size="sm">
-                  Suivre
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    Suivre
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setIsGiftModalOpen(true)}
+                  >
+                    🎁
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -246,25 +262,12 @@ export const PostDetail: React.FC = () => {
             {/* Comments */}
             <div className="flex-1 overflow-y-auto py-4 space-y-4">
               {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-3">
-                  {comment.user && (
-                    <>
-                      <Avatar
-                        src={comment.user.avatar_url}
-                        size="sm"
-                      />
-                      <div className="flex-1">
-                        <p className="text-white font-semibold text-sm">
-                          {comment.user.display_name || comment.user.username}
-                        </p>
-                        <p className="text-white/80 text-sm">{comment.text}</p>
-                        <p className="text-white/40 text-xs mt-1">
-                          {getTimeAgo(new Date(comment.created_at))}
-                        </p>
-                      </div>
-                    </>
-                  )}
-                </div>
+                <CommentThread
+                  key={comment.id}
+                  comment={comment}
+                  postId={id!}
+                  currentUser={currentUser}
+                />
               ))}
 
               {comments.length === 0 && (
@@ -297,6 +300,16 @@ export const PostDetail: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Gift Modal */}
+      {post?.user && (
+        <GiftModal
+          recipient={post.user}
+          postId={post.id}
+          isOpen={isGiftModalOpen}
+          onClose={() => setIsGiftModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

@@ -1,23 +1,29 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Helper to safely get the API Key in any environment (Vite, Process, etc.)
-const getApiKey = () => {
-  try {
-    const meta = import.meta as any;
-    if (meta.env && meta.env.VITE_GEMINI_API_KEY) return meta.env.VITE_GEMINI_API_KEY;
-    if (meta.env && meta.env.API_KEY) return meta.env.API_KEY;
-  } catch (e) {}
+// Helper to safely get the API Key
+const getApiKey = (): string => {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   
-  try {
-    if (typeof process !== "undefined" && process.env && process.env.API_KEY) {
-      return process.env.API_KEY;
-    }
-  } catch (e) {}
+  if (!apiKey) {
+    console.warn('⚠️ VITE_GEMINI_API_KEY not found in environment variables');
+    return '';
+  }
   
-  return "";
+  return apiKey;
 };
 
-const ai = new GoogleGenAI({ apiKey: getApiKey() });
+let ai: GoogleGenAI | null = null;
+
+const getAIClient = (): GoogleGenAI => {
+  if (!ai) {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      throw new Error('Gemini API key is not configured. Please set VITE_GEMINI_API_KEY in your environment.');
+    }
+    ai = new GoogleGenAI({ apiKey });
+  }
+  return ai;
+};
 
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -37,75 +43,115 @@ const base64ToBlob = async (base64: string): Promise<Blob> => {
   return await response.blob();
 };
 
+/**
+ * Generate a Quebec-style caption for an image using Gemini AI
+ */
 export async function generateCaption(file: File): Promise<string> {
   try {
+    const aiClient = getAIClient();
     const base64Data = await fileToBase64(file);
     const mimeType = file.type;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+    const response = await aiClient.models.generateContent({
+      model: "gemini-2.0-flash-exp",
       contents: {
         parts: [
           { inlineData: { mimeType, data: base64Data } },
-          { text: `
-            You are "Ti-Guy", a funny social media assistant for a Québec app called Zyeuté.
-            Task: Write a short, viral Instagram/TikTok caption based on this image.
-            Rules:
-            1. Use Québec French slang (Joual) appropriately (e.g., "capoté", "le gros", "frette", "tiguidou", "jaser").
-            2. Include 2-3 relevant hashtags.
-            3. Keep it under 280 characters.
-            4. Be energetic and relatable to young Montrealers/Quebecers.
-            Output ONLY the caption.
-          ` }
+          { text: `Tu es "Ti-Guy", un assistant IA drôle et authentique pour Zyeuté, LE réseau social québécois.
+          
+TÂCHE: Écris une légende courte et virale style Instagram/TikTok basée sur cette image.
+
+RÈGLES IMPORTANTES:
+1. Utilise du joual québécois naturel: "capoté", "frette", "tiguidou", "jaser", "malade", "le gros"
+2. Ajoute 2-3 hashtags pertinents (#Montréal, #Québec, #Zyeuté, etc.)
+3. Maximum 280 caractères
+4. Sois énergique, drôle, et relatable pour les jeunes Québécois
+5. Parle comme un vrai Québécois, pas comme un Français!
+
+IMPORTANT: Réponds UNIQUEMENT avec la légende, sans guillemets ni préfixes.` }
         ]
       }
     });
 
-    return response.text || "Wow! 📸 #Zyeuté";
-  } catch (e) {
-    console.error("Gemini Caption Error", e);
-    return "Wow! 📸 (Ti-Guy dort...)";
+    const caption = response.text?.trim() || "Wow! 📸 #Zyeuté";
+    return caption.replace(/^["']|["']$/g, ''); // Remove quotes if present
+  } catch (e: any) {
+    console.error("❌ Gemini Caption Error:", e);
+    if (e?.message?.includes('API key')) {
+      throw new Error('Configuration Gemini manquante. Vérifie ton .env.local');
+    }
+    return "Tiguidou! 🔥 #Zyeuté #Québec";
   }
 }
 
-export async function generateHashtags(file: File): Promise<string> {
+/**
+ * Generate Quebec-relevant hashtags for an image
+ */
+export async function generateHashtags(file: File): Promise<string[]> {
   try {
+    const aiClient = getAIClient();
     const base64Data = await fileToBase64(file);
     const mimeType = file.type;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+    const response = await aiClient.models.generateContent({
+      model: "gemini-2.0-flash-exp",
       contents: {
         parts: [
           { inlineData: { mimeType, data: base64Data } },
-          { text: "Analyze this image and generate 5 relevant, trending hashtags for a Quebec audience. Return ONLY the hashtags separated by spaces. Example: #montreal #hiver #poutine" }
+          { text: `Analyse cette image et génère 5-7 hashtags pertinents pour une audience québécoise.
+
+CONTEXTE: Zyeuté est un réseau social québécois. Les hashtags populaires incluent:
+#Montréal #Québec #QC #Zyeuté #514 #438 #Poutine #Hiver #STM #Frette #Construction #CôneOrange
+
+RÈGLES:
+1. Hashtags en français ou franglais (pas anglais pur)
+2. Mix de localisations (#Montréal) et thèmes (#Hiver)
+3. Retourne UNIQUEMENT les hashtags, séparés par des espaces
+4. Format: #hashtag1 #hashtag2 #hashtag3
+
+Exemple: #Montréal #Hiver #Frette #Poutine #QC #Zyeuté` }
         ]
       }
     });
 
-    return response.text || "#quebec #zyeuté";
+    const text = response.text?.trim() || '';
+    const hashtags = text
+      .split(/\s+/)
+      .filter(tag => tag.startsWith('#'))
+      .slice(0, 7);
+    
+    return hashtags.length > 0 ? hashtags : ['#Québec', '#Zyeuté'];
   } catch (e) {
-    console.error("Gemini Hashtag Error", e);
-    return "#quebec";
+    console.error("❌ Gemini Hashtag Error:", e);
+    return ['#Québec', '#Zyeuté'];
   }
 }
 
+/**
+ * Edit an image using Gemini's vision capabilities
+ * Note: Image generation/editing requires special API access
+ */
 export async function editImageWithGemini(file: File, prompt: string): Promise<File | null> {
   try {
+    const aiClient = getAIClient();
     const base64Data = await fileToBase64(file);
     const mimeType = file.type;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-image",
+    // Note: Imagen (image generation) requires special access and different API
+    // This is a placeholder for future implementation
+    console.warn('⚠️ Image editing feature requires Imagen API access');
+    
+    const response = await aiClient.models.generateContent({
+      model: "gemini-2.0-flash-exp",
       contents: {
         parts: [
           { inlineData: { mimeType, data: base64Data } },
-          { text: prompt }
+          { text: `${prompt}\n\nNote: Describe the changes needed for this image in detail.` }
         ]
       }
     });
 
-    // Iterate to find the image part in the response
+    // Check if response contains generated image
     for (const part of response.candidates?.[0]?.content?.parts || []) {
       if (part.inlineData) {
         const base64Result = `data:image/png;base64,${part.inlineData.data}`;
@@ -113,9 +159,37 @@ export async function editImageWithGemini(file: File, prompt: string): Promise<F
         return new File([blob], "edited_image.png", { type: "image/png" });
       }
     }
-    return null;
+    
+    // No image generated - this feature may not be available yet
+    throw new Error('Image editing not available. Describes changes instead.');
+  } catch (e: any) {
+    console.error("❌ Gemini Image Edit Error:", e);
+    throw new Error('La modification d\'image n\'est pas encore disponible.');
+  }
+}
+
+/**
+ * Analyze an image and provide a description
+ */
+export async function analyzeImage(file: File): Promise<string> {
+  try {
+    const aiClient = getAIClient();
+    const base64Data = await fileToBase64(file);
+    const mimeType = file.type;
+
+    const response = await aiClient.models.generateContent({
+      model: "gemini-2.0-flash-exp",
+      contents: {
+        parts: [
+          { inlineData: { mimeType, data: base64Data } },
+          { text: 'Décris cette image en français de manière concise et engageante (2-3 phrases maximum).' }
+        ]
+      }
+    });
+
+    return response.text?.trim() || 'Image analysée';
   } catch (e) {
-    console.error("Gemini Edit Error", e);
-    throw e;
+    console.error("❌ Gemini Analysis Error:", e);
+    return 'Impossible d\'analyser l\'image';
   }
 }

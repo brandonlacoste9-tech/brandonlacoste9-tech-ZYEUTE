@@ -23,7 +23,9 @@ export const VideoCard: React.FC<VideoCardProps> = ({ post, className }) => {
       to={`/post/${post.id}`}
       className={cn(
         'group relative block rounded-xl overflow-hidden bg-gray-900',
-        'transition-all duration-300 hover:scale-105 hover:shadow-gold-lg',
+        'transition-all duration-300 hover:scale-105',
+        'edge-hover',
+        'border border-white/10',
         className
       )}
     >
@@ -87,14 +89,28 @@ export const VideoCard: React.FC<VideoCardProps> = ({ post, className }) => {
         )}
       </div>
 
-      {/* Caption (if present) */}
-      {post.caption && (
-        <div className="p-3">
-          <p className="text-white text-sm line-clamp-2">
+      {/* Caption and Play Now CTA */}
+      <div className="p-4 space-y-3">
+        {post.caption && (
+          <p className="text-white text-sm line-clamp-2 leading-relaxed">
             {post.caption}
           </p>
-        </div>
-      )}
+        )}
+        
+        {/* Play Now Button - Matches Mockup */}
+        <button 
+          className="w-full py-2.5 px-4 bg-gold-gradient text-black font-semibold rounded-xl hover:scale-105 transition-transform shadow-gold flex items-center justify-center gap-2"
+          onClick={(e) => {
+            e.preventDefault();
+            // Handle play action
+          }}
+        >
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          Play Now
+        </button>
+      </div>
     </Link>
   );
 };

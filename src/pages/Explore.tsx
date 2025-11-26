@@ -6,6 +6,7 @@ import React from 'react';
 import { Header } from '../components/layout/Header';
 import { BottomNav } from '../components/layout/BottomNav';
 import { FeedGrid } from '../components/layout/FeedGrid';
+import { SearchBar } from '../components/features/SearchBar';
 import { supabase } from '../lib/supabase';
 import { QUEBEC_HASHTAGS, QUEBEC_REGIONS } from '../../quebecFeatures';
 import type { Post } from '../types';
@@ -61,30 +62,12 @@ export const Explore: React.FC = () => {
       <Header showSearch={false} />
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Search */}
+        {/* Enhanced Search */}
         <div className="mb-6">
-          <div className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Recherche des posts, hashtags..."
-              className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white placeholder-white/40 focus:outline-none focus:border-gold-400"
-            />
-            <svg
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-white/40"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
+          <SearchBar
+            onSearchChange={setSearchQuery}
+            placeholder="Recherche des posts, users, hashtags..."
+          />
         </div>
 
         {/* Trending Hashtags */}

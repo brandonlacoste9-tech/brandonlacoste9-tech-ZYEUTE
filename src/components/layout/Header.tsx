@@ -5,6 +5,8 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
+import { useNotifications } from '../../contexts/NotificationContext';
+import { Logo } from '../ui/Logo';
 
 export interface HeaderProps {
   showSearch?: boolean;
@@ -20,26 +22,29 @@ export const Header: React.FC<HeaderProps> = ({
   className,
 }) => {
   const navigate = useNavigate();
+  const { unreadCount } = useNotifications();
 
   return (
     <header
       className={cn(
-        'sticky top-0 z-50 bg-gold-gradient border-b border-gold-500/20',
-        'backdrop-blur-xl',
+        'sticky top-0 z-50',
+        'bg-gradient-to-r from-[#F9DB6D] via-[#F5C842] to-[#D4AF37]',
+        'border-b border-black/20',
+        'shadow-lg shadow-gold/30',
         className
       )}
     >
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
         {/* Left: Logo or Back button */}
         <div className="flex items-center gap-4">
           {showBack ? (
             <button
               onClick={() => navigate(-1)}
-              className="p-2 hover:bg-white/10 rounded-full transition-colors"
+              className="p-2 hover:bg-black/10 rounded-full transition-all hover:scale-110"
               aria-label="Go back"
             >
               <svg
-                className="w-6 h-6 text-white"
+                className="w-6 h-6 text-black"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -53,16 +58,11 @@ export const Header: React.FC<HeaderProps> = ({
               </svg>
             </button>
           ) : (
-            <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <div className="text-2xl font-bold text-white flex items-center gap-1">
-                <span className="text-gold-400">⚜️</span>
-                <span>Zyeuté</span>
-              </div>
-            </Link>
+            <Logo size="sm" showText={true} linkTo="/" />
           )}
 
           {title && (
-            <h1 className="text-xl font-bold text-white">{title}</h1>
+            <h1 className="text-xl font-bold text-black">{title}</h1>
           )}
         </div>
 
@@ -71,11 +71,11 @@ export const Header: React.FC<HeaderProps> = ({
           {showSearch && (
             <Link
               to="/explore"
-              className="p-2 hover:bg-white/10 rounded-full transition-colors"
+              className="p-2 hover:bg-black/10 rounded-full transition-all hover:scale-110"
               aria-label="Search"
             >
               <svg
-                className="w-6 h-6 text-white"
+                className="w-6 h-6 text-black"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -92,11 +92,11 @@ export const Header: React.FC<HeaderProps> = ({
 
           <Link
             to="/notifications"
-            className="p-2 hover:bg-white/10 rounded-full transition-colors relative"
+            className="p-2 hover:bg-black/10 rounded-full transition-all hover:scale-110 relative"
             aria-label="Notifications"
           >
             <svg
-              className="w-6 h-6 text-white"
+              className="w-6 h-6 text-black"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -108,17 +108,21 @@ export const Header: React.FC<HeaderProps> = ({
                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
               />
             </svg>
-            {/* Notification badge */}
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+            {/* Notification badge with count */}
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 bg-red-600 rounded-full ring-2 ring-gold-400 flex items-center justify-center text-white text-xs font-bold">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
           </Link>
 
           <Link
             to="/settings"
-            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            className="p-2 hover:bg-black/10 rounded-full transition-all hover:scale-110"
             aria-label="Settings"
           >
             <svg
-              className="w-6 h-6 text-white"
+              className="w-6 h-6 text-black"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

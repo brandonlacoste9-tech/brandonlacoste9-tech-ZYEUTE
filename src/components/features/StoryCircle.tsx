@@ -12,6 +12,7 @@ export interface StoryCircleProps {
   story?: Story;
   isViewed?: boolean;
   isOwnStory?: boolean;
+  onClick?: () => void;
   className?: string;
 }
 
@@ -20,22 +21,31 @@ export const StoryCircle: React.FC<StoryCircleProps> = ({
   story,
   isViewed = false,
   isOwnStory = false,
+  onClick,
   className,
 }) => {
   const hasStory = !!story;
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (onClick) {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   return (
     <Link
-      to={hasStory ? `/stories/${user.id}` : '/upload/story'}
+      to={hasStory ? `/stories/${user.id}` : '/story/create'}
+      onClick={handleClick}
       className={cn('flex flex-col items-center gap-2 flex-shrink-0', className)}
     >
       {/* Story ring */}
       <div
         className={cn(
           'relative w-20 h-20 rounded-full p-0.5',
-          hasStory && !isViewed && 'story-ring animate-pulse-slow',
+          hasStory && !isViewed && 'story-ring animate-pulse-slow edge-glow',
           hasStory && isViewed && 'bg-gray-600',
-          !hasStory && isOwnStory && 'bg-gradient-to-br from-gray-600 to-gray-800'
+          !hasStory && isOwnStory && 'bg-gradient-to-br from-gray-600 to-gray-800 edge-glow-subtle'
         )}
       >
         {/* Avatar */}
@@ -83,8 +93,9 @@ export const StoryCircle: React.FC<StoryCircleProps> = ({
 export const StoryCarousel: React.FC<{
   stories: Array<{ user: User; story?: Story; isViewed?: boolean }>;
   currentUser?: User;
+  onStoryClick?: (userStories: Story[], startIndex: number) => void;
   className?: string;
-}> = ({ stories, currentUser, className }) => {
+}> = ({ stories, currentUser, onStoryClick, className }) => {
   return (
     <div className={cn('overflow-x-auto scrollbar-hide', className)}>
       <div className="flex gap-4 p-4">
@@ -94,18 +105,33 @@ export const StoryCarousel: React.FC<{
             user={currentUser}
             isOwnStory
             story={stories.find(s => s.user.id === currentUser.id)?.story}
+            onClick={() => {
+              const currentUserStory = stories.find(s => s.user.id === currentUser.id)?.story;
+              if (currentUserStory && onStoryClick) {
+                onStoryClick([currentUserStory], 0);
+              }
+            }}
           />
         )}
 
         {/* Other users' stories */}
         {stories
           .filter(s => s.user.id !== currentUser?.id)
-          .map(({ user, story, isViewed }) => (
+          .map(({ user, story, isViewed }, index) => (
             <StoryCircle
               key={user.id}
               user={user}
               story={story}
               isViewed={isViewed}
+              onClick={() => {
+                if (story && onStoryClick) {
+                  // Get all stories for this user
+                  const userStories = stories
+                    .filter(s => s.user.id === user.id && s.story)
+                    .map(s => s.story!);
+                  onStoryClick(userStories, 0);
+                }
+              }}
             />
           ))}
       </div>
