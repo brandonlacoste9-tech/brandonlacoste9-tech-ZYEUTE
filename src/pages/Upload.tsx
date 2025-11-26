@@ -9,14 +9,13 @@ import { Button } from '../components/ui/Button';
 import { supabase } from '../lib/supabase';
 import { extractHashtags, generateId } from '../lib/utils';
 import { QUEBEC_REGIONS } from '../../quebecFeatures';
-import { generateCaption as generateAICaption, generateHashtags as generateAIHashtags, analyzeImage } from '../../services/geminiService';
+import { generateCaption as generateAICaption, generateHashtags as generateAIHashtags, analyzeImage } from '../services/geminiService';
 import { moderateContent, isUserBanned } from '../services/moderationService';
 import { checkAchievements } from '../services/achievementService';
 import { toast } from '../components/ui/Toast';
 
 export const Upload: React.FC = () => {
   const navigate = useNavigate();
-
   const [file, setFile] = React.useState<File | null>(null);
   const [preview, setPreview] = React.useState<string | null>(null);
   const [caption, setCaption] = React.useState('');
@@ -32,7 +31,6 @@ export const Upload: React.FC = () => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-
       // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -48,10 +46,8 @@ export const Upload: React.FC = () => {
       toast.warning('Ajoute une image d\'abord!');
       return;
     }
-
     setIsGenerating(true);
     toast.info('Ti-Guy est en train de créer ta légende... 🤖');
-    
     try {
       const aiCaption = await generateAICaption(file);
       setCaption(aiCaption);
@@ -74,17 +70,13 @@ export const Upload: React.FC = () => {
       toast.warning('Ajoute une image d\'abord!');
       return;
     }
-
     toast.info('Génération des hashtags... 🏷️');
-    
     try {
       const hashtags = await generateAIHashtags(file);
       const hashtagString = hashtags.join(' ');
-      
       // Append hashtags to caption or replace existing ones
       const captionWithoutHashtags = caption.replace(/#\w+/g, '').trim();
       setCaption(`${captionWithoutHashtags} ${hashtagString}`.trim());
-      
       toast.success(`${hashtags.length} hashtags ajoutés!`);
     } catch (error) {
       console.error('Error generating hashtags:', error);
@@ -95,9 +87,7 @@ export const Upload: React.FC = () => {
   // Analyze image
   const handleAnalyzeImage = async () => {
     if (!file) return;
-
     toast.info('Analyse de l\'image...');
-    
     try {
       const description = await analyzeImage(file);
       toast.info(description);
@@ -112,18 +102,15 @@ export const Upload: React.FC = () => {
       alert('Sélectionne une photo ou vidéo!');
       return;
     }
-
     setIsUploading(true);
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
-
       if (!user) {
         alert('Tu dois être connecté!');
         navigate('/login');
         return;
       }
-
       // Check if user is banned
       const banStatus = await isUserBanned(user.id);
       if (banStatus.isBanned) {
@@ -135,7 +122,6 @@ export const Upload: React.FC = () => {
         setIsUploading(false);
         return;
       }
-
       // AI Moderation Check
       toast.info('Analyse du contenu en cours... 🛡️');
       const moderationResult = await moderateContent(
@@ -143,7 +129,6 @@ export const Upload: React.FC = () => {
         'post',
         user.id
       );
-
       // Handle moderation result
       if (moderationResult.action === 'ban' || moderationResult.action === 'remove') {
         toast.error(`❌ ${moderationResult.reason}`);
@@ -151,22 +136,17 @@ export const Upload: React.FC = () => {
         setIsUploading(false);
         return;
       }
-
       if (moderationResult.action === 'flag') {
         toast.warning('⚠️ Ton contenu sera révisé par notre équipe');
       }
-
       // Upload file to storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${generateId()}.${fileExt}`;
       const filePath = `media/${user.id}/${fileName}`;
-
       toast.info('Upload en cours... ⬆️');
-
       const { error: uploadError } = await supabase.storage
         .from('posts')
         .upload(filePath, file);
-
       if (uploadError) {
         // Check if bucket exists, provide helpful error
         if (uploadError.message.includes('not found')) {
@@ -174,15 +154,12 @@ export const Upload: React.FC = () => {
         }
         throw uploadError;
       }
-
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('posts')
         .getPublicUrl(filePath);
-
       // Extract hashtags
       const hashtags = extractHashtags(caption);
-
       // Create post
       const { data: newPost, error: insertError } = await supabase
         .from('posts')
@@ -197,9 +174,7 @@ export const Upload: React.FC = () => {
         })
         .select()
         .single();
-
       if (insertError) throw insertError;
-
       // Log moderation with content ID
       if (newPost) {
         await moderateContent(
@@ -208,7 +183,6 @@ export const Upload: React.FC = () => {
           user.id,
           newPost.id
         );
-
         // Check achievements! 🏆
         await checkAchievements(user.id, {
           type: 'post_created',
@@ -219,7 +193,6 @@ export const Upload: React.FC = () => {
           },
         });
       }
-
       // Success!
       if (moderationResult.action === 'flag') {
         toast.success('Post publié! En attente de révision.');
@@ -234,11 +207,9 @@ export const Upload: React.FC = () => {
       setIsUploading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-black pb-20">
       <Header showBack={true} title="Créer un post" />
-
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* File input */}
         <input
@@ -248,7 +219,6 @@ export const Upload: React.FC = () => {
           onChange={handleFileChange}
           className="hidden"
         />
-
         {/* Preview */}
         {preview ? (
           <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-900 mb-6">
@@ -265,7 +235,6 @@ export const Upload: React.FC = () => {
                 className="w-full h-full object-cover"
               />
             )}
-
             {/* Change file button */}
             <button
               onClick={() => fileInputRef.current?.click()}
@@ -277,7 +246,7 @@ export const Upload: React.FC = () => {
         ) : (
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="w-full aspect-square rounded-2xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center gap-4 hover:border-gold-400 hover:bg-white/5 transition-all mb-6"
+            className="w-full aspect-square rounded-2xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center gap-4 hover:border-gold-400 hover:bg-white/5 transition-al[...]
           >
             <svg
               className="w-16 h-16 text-white/40"
@@ -297,7 +266,6 @@ export const Upload: React.FC = () => {
             </span>
           </button>
         )}
-
         {/* Caption */}
         <div className="glass-card rounded-2xl p-6 mb-4">
           <label className="block text-white font-semibold mb-2">
@@ -310,7 +278,6 @@ export const Upload: React.FC = () => {
             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-gold-400 resize-none"
             rows={4}
           />
-
           {/* AI Actions */}
           <div className="mt-3 flex gap-2 flex-wrap">
             <Button
@@ -323,7 +290,6 @@ export const Upload: React.FC = () => {
             >
               {isGenerating ? 'Ti-Guy réfléchit...' : 'Demande à Ti-Guy'}
             </Button>
-            
             <Button
               variant="outline"
               size="sm"
@@ -333,7 +299,6 @@ export const Upload: React.FC = () => {
             >
               Hashtags
             </Button>
-            
             <Button
               variant="ghost"
               size="sm"
@@ -345,7 +310,6 @@ export const Upload: React.FC = () => {
             </Button>
           </div>
         </div>
-
         {/* Region & City */}
         <div className="glass-card rounded-2xl p-6 mb-6">
           <div className="grid grid-cols-2 gap-4">
@@ -366,7 +330,6 @@ export const Upload: React.FC = () => {
                 ))}
               </select>
             </div>
-
             <div>
               <label className="block text-white font-semibold mb-2 text-sm">
                 Ville
@@ -381,7 +344,6 @@ export const Upload: React.FC = () => {
             </div>
           </div>
         </div>
-
         {/* Upload button */}
         <Button
           variant="primary"
