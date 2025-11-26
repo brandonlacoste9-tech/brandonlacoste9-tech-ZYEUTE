@@ -40,254 +40,302 @@ const Profile: React.FC<ProfileProps> = ({
   };
 
   return (
-    <div style={{ padding: 16 }}>
-      <div style={{ display: "flex", gap: 16, marginBottom: 24, alignItems: "flex-start" }}>
-        <img
-          src={currentUser.avatarUrl}
-          alt={currentUser.displayName}
-          style={{
-            width: 80,
-            height: 80,
-            borderRadius: "50%",
-            objectFit: "cover",
-            border: "2px solid #D4AF37"
-          }}
-        />
-
-        <div style={{ flex: 1 }}>
-          {!editing ? (
-            <>
-              <h2 style={{ margin: "0 0 4px 0", fontSize: 20, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", gap: 6 }}>
-                {currentUser.displayName}
-                {currentUser.isVerified && <span title="Certifié QC">⚜️</span>}
-              </h2>
-
-              <div style={{ fontSize: 13, color: "#D4AF37", marginBottom: 12 }}>
-                @{currentUser.username} · {currentUser.city}
-              </div>
-
-              <p style={{ fontSize: 14, margin: "0 0 12px 0", whiteSpace: "pre-wrap", lineHeight: 1.4, color: "#ccc" }}>
-                {currentUser.bio || t("your_bio_placeholder")}
-              </p>
-
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                    onClick={() => setEditing(true)}
-                    style={{
-                    borderRadius: 4,
-                    border: "1px solid #444",
-                    padding: "6px 16px",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    background: "transparent",
-                    color: "#e5e7eb",
-                    cursor: "pointer",
-                    textTransform: "uppercase"
-                    }}
-                >
-                    {t("edit_profile")}
-                </button>
-                <div style={{
-                    borderRadius: 4,
-                    background: "rgba(212, 175, 55, 0.2)",
-                    border: "1px solid #D4AF37",
-                    padding: "6px 12px",
-                    fontSize: 12,
-                    color: "#D4AF37",
-                    fontWeight: "bold",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6
-                }}>
-                    🪙 {currentUser.coins} {t("coins")}
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <input
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Nom d’affichage"
-                  style={{
-                    borderRadius: 4,
-                    border: "1px solid #333",
-                    padding: "8px 12px",
-                    fontSize: 13,
-                    background: "#121212",
-                    color: "#e5e7eb",
-                    outline: "none"
-                  }}
-                />
-
-                <input
-                  value={avatarUrl}
-                  onChange={(e) => setAvatarUrl(e.target.value)}
-                  placeholder="URL de la photo de profil"
-                  style={{
-                    borderRadius: 4,
-                    border: "1px solid #333",
-                    padding: "8px 12px",
-                    fontSize: 13,
-                    background: "#121212",
-                    color: "#e5e7eb",
-                    outline: "none"
-                  }}
-                />
-
-                <textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder={t("your_bio_placeholder")}
-                  style={{
-                    borderRadius: 4,
-                    border: "1px solid #333",
-                    padding: "10px",
-                    minHeight: 72,
-                    fontSize: 13,
-                    background: "#121212",
-                    color: "#e5e7eb",
-                    resize: "vertical",
-                    outline: "none",
-                    fontFamily: "inherit"
-                  }}
-                />
-              </div>
-
-              <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-                <button
-                  onClick={handleSave}
-                  style={{
-                    borderRadius: 4,
-                    border: "none",
-                    padding: "6px 16px",
-                    background: "#D4AF37",
-                    color: "#000",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    textTransform: "uppercase"
-                  }}
-                >
-                  {t("save")}
-                </button>
-
-                <button
-                  onClick={() => setEditing(false)}
-                  style={{
-                    borderRadius: 4,
-                    border: "1px solid #444",
-                    padding: "6px 16px",
-                    background: "transparent",
-                    color: "#cbd5e1",
-                    fontSize: 12,
-                    cursor: "pointer",
-                    textTransform: "uppercase"
-                  }}
-                >
-                  {t("cancel")}
-                </button>
-              </div>
-            </>
+    <div style={{ padding: 0, minHeight: "100%", background: "#050505" }}>
+      {/* Header Section with subtle gradient */}
+      <div style={{ 
+        display: "flex", 
+        flexDirection: "column", 
+        alignItems: "center", 
+        padding: "40px 20px 30px 20px",
+        background: "linear-gradient(to bottom, #0f172a 0%, #050505 100%)", // Subtle dark blue to black
+        borderBottom: "1px solid #222"
+      }}>
+        
+        {/* Avatar with glow */}
+        <div style={{ position: "relative", marginBottom: 20 }}>
+          <img
+            src={currentUser.avatarUrl}
+            alt={currentUser.displayName}
+            style={{
+              width: 100,
+              height: 100,
+              borderRadius: "50%",
+              objectFit: "cover",
+              border: "3px solid #D4AF37",
+              boxShadow: "0 0 25px rgba(212, 175, 55, 0.15)"
+            }}
+          />
+          {editing && (
+            <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.6)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontSize: 24 }}>✏️</span>
+            </div>
           )}
         </div>
-      </div>
 
-      {/* Stats */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-around",
-          marginBottom: 20,
-          fontSize: 14,
-          padding: "16px 0",
-          borderTop: "1px solid #222",
-          borderBottom: "1px solid #222",
-          background: "#0a0a0a"
-        }}
-      >
-        <div style={{textAlign: "center"}}>
-          <div style={{fontWeight: 700, fontSize: 18, color: "#fff"}}>{myPosts.length}</div>
-          <div style={{color: "#666", fontSize: 11, textTransform: "uppercase", marginTop: 4}}>{t("posts_count")}</div>
-        </div>
-        <div style={{textAlign: "center"}}>
-          <div style={{fontWeight: 700, fontSize: 18, color: "#fff"}}>{followers.length}</div>
-          <div style={{color: "#666", fontSize: 11, textTransform: "uppercase", marginTop: 4}}>{t("followers")}</div>
-        </div>
-        <div style={{textAlign: "center"}}>
-          <div style={{fontWeight: 700, fontSize: 18, color: "#fff"}}>{following.length}</div>
-          <div style={{color: "#666", fontSize: 11, textTransform: "uppercase", marginTop: 4}}>{t("following")}</div>
-        </div>
-      </div>
+        {/* Name & Handle */}
+        {!editing ? (
+          <>
+            <h2 style={{ 
+              margin: "0 0 6px 0", 
+              fontSize: 24, 
+              fontWeight: 800, 
+              color: "#fff", 
+              display: "flex", 
+              alignItems: "center", 
+              gap: 8,
+              letterSpacing: "0.5px"
+            }}>
+              {currentUser.displayName}
+              {currentUser.isVerified && <span title="Certifié QC">⚜️</span>}
+            </h2>
+            <div style={{ fontSize: 14, color: "#D4AF37", marginBottom: 24, fontWeight: 500, letterSpacing: "0.5px" }}>
+              @{currentUser.username} <span style={{color: "#444", margin: "0 6px"}}>|</span> {currentUser.city}
+            </div>
 
-      {/* Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 2,
-        }}
-      >
-        {myPosts.map((p) => (
-          <div
-            key={p.id}
-            style={{
-              position: "relative",
-              paddingBottom: "100%",
-              overflow: "hidden",
-              background: "#1e293b"
-            }}
-          >
-            {p.type === "photo" ? (
-              <img
-                src={p.mediaUrl}
-                alt={p.caption}
+            {/* Stats Row - Improved Layout */}
+            <div style={{ 
+              display: "flex", 
+              gap: 40, 
+              marginBottom: 24, 
+              alignItems: "center",
+              background: "rgba(255,255,255,0.03)",
+              padding: "12px 24px",
+              borderRadius: 16,
+              border: "1px solid rgba(255,255,255,0.05)"
+            }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontWeight: 900, fontSize: 22, color: "#fff" }}>{myPosts.length}</div>
+                <div style={{ color: "#94a3b8", fontSize: 11, textTransform: "uppercase", fontWeight: 700, letterSpacing: "1px" }}>{t("posts_count")}</div>
+              </div>
+              <div style={{ width: 1, height: 30, background: "rgba(255,255,255,0.1)" }}></div>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontWeight: 900, fontSize: 22, color: "#fff" }}>{followers.length}</div>
+                <div style={{ color: "#94a3b8", fontSize: 11, textTransform: "uppercase", fontWeight: 700, letterSpacing: "1px" }}>{t("followers")}</div>
+              </div>
+              <div style={{ width: 1, height: 30, background: "rgba(255,255,255,0.1)" }}></div>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontWeight: 900, fontSize: 22, color: "#fff" }}>{following.length}</div>
+                <div style={{ color: "#94a3b8", fontSize: 11, textTransform: "uppercase", fontWeight: 700, letterSpacing: "1px" }}>{t("following")}</div>
+              </div>
+            </div>
+
+            {/* Bio */}
+            <p style={{ 
+              textAlign: "center", 
+              fontSize: 14, 
+              color: "#cbd5e1", 
+              whiteSpace: "pre-wrap", 
+              lineHeight: 1.6, 
+              maxWidth: "85%",
+              margin: "0 0 28px 0"
+            }}>
+              {currentUser.bio || t("your_bio_placeholder")}
+            </p>
+
+            {/* Action Buttons */}
+            <div style={{ display: "flex", gap: 12, width: "100%", justifyContent: "center" }}>
+              <button
+                onClick={() => setEditing(true)}
                 style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
+                  height: 44,
+                  padding: "0 28px",
+                  borderRadius: 12,
+                  border: "1px solid #333",
+                  background: "#1e293b",
+                  color: "#fff",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "background 0.2s"
+                }}
+              >
+                {t("edit_profile")}
+              </button>
+              <div style={{
+                height: 44,
+                padding: "0 20px",
+                borderRadius: 12,
+                background: "linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.05))",
+                border: "1px solid rgba(212, 175, 55, 0.3)",
+                color: "#D4AF37",
+                fontSize: 14,
+                fontWeight: "bold",
+                display: "flex",
+                alignItems: "center",
+                gap: 8
+              }}>
+                <span>🪙</span>
+                <span>{currentUser.coins}</span>
+              </div>
+            </div>
+          </>
+        ) : (
+          /* Edit Mode */
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%", maxWidth: 320 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <label style={{ fontSize: 12, color: "#94a3b8", marginLeft: 4 }}>Nom d'affichage</label>
+              <input
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                style={{
+                  borderRadius: 12,
+                  border: "1px solid #333",
+                  padding: "14px",
+                  fontSize: 14,
+                  background: "#121212",
+                  color: "#fff",
+                  outline: "none"
                 }}
               />
-            ) : (
-              <>
-                <video
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <label style={{ fontSize: 12, color: "#94a3b8", marginLeft: 4 }}>URL Photo</label>
+              <input
+                value={avatarUrl}
+                onChange={(e) => setAvatarUrl(e.target.value)}
+                style={{
+                  borderRadius: 12,
+                  border: "1px solid #333",
+                  padding: "14px",
+                  fontSize: 14,
+                  background: "#121212",
+                  color: "#fff",
+                  outline: "none"
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <label style={{ fontSize: 12, color: "#94a3b8", marginLeft: 4 }}>Bio</label>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                style={{
+                  borderRadius: 12,
+                  border: "1px solid #333",
+                  padding: "14px",
+                  minHeight: 100,
+                  fontSize: 14,
+                  background: "#121212",
+                  color: "#fff",
+                  resize: "vertical",
+                  outline: "none",
+                  fontFamily: "inherit"
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+              <button
+                onClick={handleSave}
+                style={{
+                  flex: 1,
+                  padding: "14px",
+                  borderRadius: 12,
+                  border: "none",
+                  background: "linear-gradient(45deg, #D4AF37, #b8860b)",
+                  color: "#000",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer"
+                }}
+              >
+                {t("save")}
+              </button>
+
+              <button
+                onClick={() => setEditing(false)}
+                style={{
+                  flex: 1,
+                  padding: "14px",
+                  borderRadius: 12,
+                  border: "1px solid #333",
+                  background: "transparent",
+                  color: "#ccc",
+                  fontSize: 14,
+                  cursor: "pointer"
+                }}
+              >
+                {t("cancel")}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Grid Content */}
+      <div style={{ padding: 2, minHeight: 300 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 2,
+          }}
+        >
+          {myPosts.map((p) => (
+            <div
+              key={p.id}
+              style={{
+                position: "relative",
+                paddingBottom: "100%", // 1:1 Aspect Ratio
+                overflow: "hidden",
+                background: "#1e293b",
+                cursor: "pointer"
+              }}
+            >
+              {p.type === "photo" ? (
+                <img
                   src={p.mediaUrl}
-                  muted
+                  alt={p.caption}
                   style={{
                     position: "absolute",
                     inset: 0,
                     width: "100%",
                     height: "100%",
                     objectFit: "cover",
+                    transition: "transform 0.3s"
                   }}
                 />
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 4,
-                    right: 4,
-                    fontSize: 12,
-                    textShadow: "0 1px 2px rgba(0,0,0,0.5)"
-                  }}
-                >
-                  🎥
-                </div>
-              </>
-            )}
-          </div>
-        ))}
+              ) : (
+                <>
+                  <video
+                    src={p.mediaUrl}
+                    muted
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 4,
+                      right: 4,
+                      fontSize: 12,
+                      textShadow: "0 1px 2px rgba(0,0,0,0.5)"
+                    }}
+                  >
+                    🎥
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
 
-        {myPosts.length === 0 && (
-          <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: 40, opacity: 0.6, fontSize: 14, color: "#D4AF37" }}>
-            Poste de quoi pour remplir ton profil! 🔥
-          </div>
-        )}
+          {myPosts.length === 0 && (
+            <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "60px 20px", opacity: 0.6, fontSize: 14, color: "#D4AF37" }}>
+              <div style={{ fontSize: 40, marginBottom: 12 }}>📸</div>
+              Poste de quoi pour remplir ton profil! 🔥
+            </div>
+          )}
+        </div>
       </div>
 
-      <div style={{ textAlign: "center", marginTop: 24, marginBottom: 8, opacity: 0.5, fontSize: 10, color: "#9ca3af" }}>
+      <div style={{ textAlign: "center", padding: "32px 0 16px 0", opacity: 0.5, fontSize: 10, color: "#9ca3af" }}>
         <p style={{ margin: 0 }}>Propulsé par <span style={{ color: "#D4AF37", fontWeight: "bold" }}>Nano Banana 🍌</span></p>
       </div>
     </div>

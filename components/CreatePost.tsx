@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Post, User, PostType, Song } from "../types";
 import { DEMO_SONGS } from "../constants";
-import { generateCaption, editImageWithGemini, generateHashtags } from "../geminiService";
+import { generateCaption, editImageWithGemini, generateHashtags } from "../services/geminiService";
 
 interface CreatePostProps {
   currentUser: User;
@@ -14,6 +14,9 @@ const FILTERS = [
   { id: "vintage", name: "filter_vintage", style: "sepia(0.4) contrast(1.2)" },
   { id: "bw", name: "filter_bw", style: "grayscale(100%)" },
   { id: "poutine", name: "filter_poutine", style: "saturate(1.5) contrast(1.1)" },
+  { id: "vhs", name: "filter_vhs", style: "contrast(1.2) saturate(1.3) sepia(0.3) hue-rotate(-15deg)" },
+  { id: "glitch", name: "filter_glitch", style: "contrast(1.5) saturate(2) hue-rotate(180deg) invert(0.1)" },
+  { id: "noir", name: "filter_noir", style: "grayscale(1) contrast(1.2) brightness(0.9)" },
 ];
 
 const CreatePost: React.FC<CreatePostProps> = ({
@@ -333,6 +336,62 @@ const CreatePost: React.FC<CreatePostProps> = ({
              </div>
           </div>
 
+          {/* Caption Area with Ti-Guy Button */}
+          <div style={{ position: "relative" }}>
+            <textarea
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              placeholder={t("caption_placeholder")}
+              style={{
+                width: "100%",
+                borderRadius: 8,
+                border: "1px solid #333",
+                padding: "14px 48px 14px 14px", // Extra padding right for button
+                minHeight: 100,
+                background: "#121212",
+                color: "#e5e7eb",
+                fontSize: 14,
+                resize: "none",
+                outline: "none",
+                fontFamily: "inherit",
+                boxSizing: "border-box"
+              }}
+            />
+            {/* The Ti-Guy Magic Button */}
+            <button
+              type="button"
+              onClick={handleGenerateCaption}
+              disabled={isGenerating}
+              title="Demander à Ti-Guy (IA)"
+              style={{
+                position: "absolute",
+                bottom: 12,
+                right: 12,
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                border: "none",
+                background: "linear-gradient(135deg, #C6934B, #F3C982)",
+                color: "#000",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: isGenerating ? "default" : "pointer",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+                transition: "transform 0.2s"
+              }}
+            >
+               {isGenerating ? (
+                 <span style={{ animation: "spin 1s linear infinite", display: "block", width: 14, height: 14, border: "2px solid #000", borderTopColor: "transparent", borderRadius: "50%" }}></span>
+               ) : (
+                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                   <path d="M12 2L9.91 8.26L3.66 10.34L9.91 12.42L12 18.68L14.09 12.42L20.34 10.34L14.09 8.26L12 2Z" />
+                   <path d="M19 16L17.75 19.75L14 21L17.75 22.25L19 26L20.25 22.25L24 21L20.25 19.75L19 16Z" transform="translate(-4 -4) scale(0.8)" opacity="0.7"/>
+                 </svg>
+               )}
+            </button>
+          </div>
+
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
              <button
               type="button"
@@ -353,48 +412,10 @@ const CreatePost: React.FC<CreatePostProps> = ({
                 opacity: isGenerating ? 0.7 : 1,
               }}
             >
-               {isGenerating ? "⏳..." : "#️⃣ Tags"}
-            </button>
-            <button
-              type="button"
-              onClick={handleGenerateCaption}
-              disabled={isGenerating}
-              style={{
-                background: "transparent",
-                border: "1px solid #D4AF37",
-                borderRadius: 4,
-                padding: "6px 14px",
-                color: "#D4AF37",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                opacity: isGenerating ? 0.7 : 1,
-              }}
-            >
-              {isGenerating ? "⏳ " + t("generating") : "✨ " + t("ia_caption")}
+               #️⃣ Hashtags
             </button>
           </div>
-
-          <textarea
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
-            placeholder={t("caption_placeholder")}
-            style={{
-              borderRadius: 8,
-              border: "1px solid #333",
-              padding: 14,
-              minHeight: 80,
-              background: "#121212",
-              color: "#e5e7eb",
-              fontSize: 14,
-              resize: "none",
-              outline: "none",
-              fontFamily: "inherit"
-            }}
-          />
+          <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
 
           <button
             type="submit"

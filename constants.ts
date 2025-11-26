@@ -202,6 +202,9 @@ export const TRANSLATIONS: TranslationMap = {
   filter_vintage: { fr: "Rétro", en: "Vintage" },
   filter_bw: { fr: "Noir & Blanc", en: "B&W" },
   filter_poutine: { fr: "Poutine", en: "Vivid" },
+  filter_vhs: { fr: "VHS", en: "VHS" },
+  filter_glitch: { fr: "Glitch", en: "Glitch" },
+  filter_noir: { fr: "Noir", en: "Noir" },
   
   // Discover & Inbox
   search_placeholder: { fr: "Chercher (ex: poutine, hiver)", en: "Search" },

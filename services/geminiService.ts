@@ -4,6 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 const getApiKey = () => {
   try {
     const meta = import.meta as any;
+    if (meta.env && meta.env.VITE_GEMINI_API_KEY) return meta.env.VITE_GEMINI_API_KEY;
     if (meta.env && meta.env.API_KEY) return meta.env.API_KEY;
   } catch (e) {}
   
@@ -46,15 +47,24 @@ export async function generateCaption(file: File): Promise<string> {
       contents: {
         parts: [
           { inlineData: { mimeType, data: base64Data } },
-          { text: "Write a short, engaging caption for this social media post in French (use Québec slang/joual if appropriate). Keep it under 20 words. Do not include hashtags. Tone: Casual, fun, authentic." }
+          { text: `
+            You are "Ti-Guy", a funny social media assistant for a Québec app called Zyeuté.
+            Task: Write a short, viral Instagram/TikTok caption based on this image.
+            Rules:
+            1. Use Québec French slang (Joual) appropriately (e.g., "capoté", "le gros", "frette", "tiguidou", "jaser").
+            2. Include 2-3 relevant hashtags.
+            3. Keep it under 280 characters.
+            4. Be energetic and relatable to young Montrealers/Quebecers.
+            Output ONLY the caption.
+          ` }
         ]
       }
     });
 
-    return response.text || "Wow! 📸";
+    return response.text || "Wow! 📸 #Zyeuté";
   } catch (e) {
     console.error("Gemini Caption Error", e);
-    return "Wow! 📸 (AI Unavailable)";
+    return "Wow! 📸 (Ti-Guy dort...)";
   }
 }
 

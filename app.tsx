@@ -1,16 +1,21 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FeedItem from "./components/FeedItem";
 import CreatePost from "./components/CreatePost";
 import Profile from "./components/Profile";
-import NavButton from "./components/NavButton";
+import Navigation from "./components/Navigation";
 import Inbox from "./components/Inbox";
 import Discover from "./components/Discover";
 import LiveOverlay from "./components/LiveOverlay";
+import Login from "./components/Login";
 import { DEMO_POSTS, DEMO_USERS, DEMO_COMMENTS, DEMO_FOLLOWS, DEMO_NOTIFICATIONS, DEMO_MESSAGES, TRANSLATIONS, CURRENT_USER_ID } from "./constants";
 import { Post, User, Comment, Follow } from "./types";
+import { supabase } from "./services/supabaseClient";
 
 const App: React.FC = () => {
+  const [session, setSession] = useState<any>(null);
+  const [loadingSession, setLoadingSession] = useState(true);
+
   const [tab, setTab] = useState<"feed" | "discover" | "create" | "inbox" | "profile">("feed");
   const [feedType, setFeedType] = useState<"foryou" | "following">("foryou");
   
@@ -29,6 +34,21 @@ const App: React.FC = () => {
   const currentUser = users.find((u) => u.id === CURRENT_USER_ID) || users[0];
 
   const t = (key: string) => TRANSLATIONS[key]?.fr || key; // Default to French
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoadingSession(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleScroll = (e: React.UIEvent<HTMLElement>) => {
     if (tab !== "feed") return;
@@ -125,6 +145,20 @@ const App: React.FC = () => {
     const isMe = p.userId === currentUser.id;
     return isFollowing || isMe;
   });
+
+  if (loadingSession) {
+    return (
+      <div style={{ height: "100vh", background: "#050505", display: "flex", alignItems: "center", justifyContent: "center", color: "#D4AF37" }}>
+        <div style={{ fontSize: 24, fontWeight: "bold", animation: "pulse 1s infinite" }}>ZYEUTÉ...</div>
+        <style>{`@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }`}</style>
+      </div>
+    );
+  }
+
+  // If no session, show Login
+  if (!session) {
+    return <Login />;
+  }
 
   return (
     <div
@@ -236,7 +270,7 @@ const App: React.FC = () => {
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "0 0 40px 0",
+          padding: "0 0 60px 0", // Increased padding for bottom nav
           scrollbarWidth: "none",
         }}
       >
@@ -386,46 +420,11 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <nav
-        style={{
-          display: "flex",
-          background: "#0a0a0a",
-          borderTop: "1px solid rgba(212, 175, 55, 0.2)",
-          paddingBottom: "safe-area-inset-bottom",
-        }}
-      >
-        <NavButton
-          label={t("feed")}
-          icon="🏠"
-          active={tab === "feed"}
-          onClick={() => setTab("feed")}
-        />
-        <NavButton
-          label={t("discover")}
-          icon="🔍"
-          active={tab === "discover"}
-          onClick={() => setTab("discover")}
-        />
-        <NavButton
-          label=""
-          icon="➕"
-          active={tab === "create"}
-          onClick={() => setTab("create")}
-          isCenter
-        />
-        <NavButton
-          label={t("inbox")}
-          icon="💬"
-          active={tab === "inbox"}
-          onClick={() => setTab("inbox")}
-        />
-        <NavButton
-          label={t("profile")}
-          icon="👤"
-          active={tab === "profile"}
-          onClick={() => setTab("profile")}
-        />
-      </nav>
+      <Navigation 
+        activeTab={tab} 
+        onTabChange={(newTab) => setTab(newTab as any)}
+        onCreateClick={() => setTab("create")}
+      />
       
       {/* Live Overlay */}
       {activeLiveUser && (
