@@ -1,0 +1,41 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Colony OS",
+  "name_for_model": "colony_os",
+  "description_for_human": "The Meta-Operating System for your business. Orchestrates specialized AI agents (Bees) to automate workflows, analyze data, and generate creative content.",
+  "description_for_model": "Colony OS is a multi-agent orchestration platform. Use it to delegate complex tasks to specialized sub-agents ('Bees'). You can dispatch tasks, check status, and retrieve memories. Capabilities include: Document analysis (DocBee), Code generation (CodeBee), and Semantic Structuring (Mind).",
+  "auth": {
+    "type": "service_http",
+    "authorization_type": "bearer",
+    "verification_tokens": {
+      "openai": "fc8a09f8c0..."
+    }
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://api.adgenxai.com/openapi.yaml"
+  },
+  "logo_url": "https://adgenxai.com/assets/colony-icon.png",
+  "contact_email": "brandon@adgenxai.com",
+  "legal_info_url": "https://adgenxai.com/legal",
+  "conversation_starters": [
+    "Dispatch a new task to the Hive",
+    "What is the status of my active agents?",
+    "Analyze this text using the Sensory Cortex",
+    "Run a Mind Structure analysis on this idea"
+  ],
+  "capabilities": {
+    "sensory_pulse": {
+      "endpoint": "/sensory/pulse",
+      "description": "Analyze raw text for sentiment, category, and urgency."
+    },
+    "mind_structure": {
+      "endpoint": "/mind/structure",
+      "description": "Convert linear text into a 3D semantic graph of concepts."
+    },
+    "memory_recall": {
+      "endpoint": "/memory/search",
+      "description": "Retrieve past knowledge from the Honeycomb."
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Zyeuté",
+    "slug": "zyeute",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#2A1F16"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.zyeute.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#2A1F16"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.zyeute.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_PROJECT_ID_HERE"
+      }
+    }
+  }
+}

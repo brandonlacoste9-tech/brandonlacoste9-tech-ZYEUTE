@@ -1,0 +1,215 @@
+# Zyeuté - Project Intelligence & Rules
+
+## 🧠 Project Context (The "Bee" Architecture)
+
+- **Identity:** Zyeuté is a "Bee" in the Colony OS ecosystem. It is a hyper-local social discovery app for Quebec (TikTok x Instagram hybrid).
+
+- **Relation to Backend:** This app is a *client* (Sensory Input). It does NOT handle heavy AI processing locally. It sends data to **Colony OS** (the Meta-Operating System) for processing via the "Sensory Cortex."
+
+- **Philosophy:** AI-First. We prefer generating robust, self-healing code over quick hacks.
+
+- **Colony OS Integration:**
+  - **Sensory Cortex** (`lib/sensory/`): Collects and processes all user interactions
+  - **The Codex** (`lib/memory/`): Stores and retrieves knowledge/patterns
+  - **Semantic Router** (`lib/mind/`): Intelligent task routing
+  - **Bee Registry** (`lib/services/bee-registry.js`): Automatic registration with The Hive
+  - **Service Clients** (`lib/services/`): Temporal, LiteLLM, Qdrant, Centrifugo, Colony OS API
+
+## 🛠 Tech Stack
+
+- **Framework:** React Native (Expo Managed Workflow ~54.0.25)
+- **Language:** JavaScript (ES6+)
+- **Navigation:** React Navigation (Bottom Tabs + Stack Navigator)
+- **Backend/Auth:** Supabase (Auth, Database, Storage, Realtime)
+- **Styling:** StyleSheet (React Native)
+- **State Management:** React Hooks (useState, useEffect, useCallback)
+- **Colony OS:** Integrated via service clients in `lib/services/`
+
+## 📝 Coding Standards
+
+### 1. React Native & Expo Best Practices
+
+- **No Web DOM:** Never use `<div>`, `<span>`, or HTML tags. Always use `<View>`, `<Text>`, `<TouchableOpacity>`, `<Pressable>`.
+
+- **Navigation:** Use React Navigation (`@react-navigation/native`). Structure:
+  - `src/navigation/AppStack.js` - Main app navigation
+  - `src/navigation/AuthStack.js` - Auth screens
+  - Use `navigation.navigate()` for programmatic navigation
+
+- **Performance:** 
+  - Use `FlatList` with proper `keyExtractor` and `getItemLayout` for feeds
+  - Implement pagination with `onEndReached`
+  - Use `useCallback` and `useMemo` for expensive operations
+
+- **Images:** Use `expo-image-picker` for image selection, upload to Supabase Storage
+
+### 2. Colony OS Integration (The "Hive" Connection)
+
+- **Pattern:** When the user performs a complex action (e.g., "Find events like this"), do NOT write local logic.
+
+- **Action:** Dispatch a request to the Colony OS API via service clients.
+
+- **Structure:**
+  ```javascript
+  // Example of calling The Hive
+  import { colonyOSClient } from '../lib/services/colony-os-client';
+  
+  const sendToSensoryCortex = async (input) => {
+    return await colonyOSClient.sendTelemetry({
+      type: 'user.action',
+      beeId: 'zyeute',
+      data: input,
+    });
+  };
+  ```
+
+- **Service Clients:** Always use the existing service clients in `lib/services/`:
+  - `colonyOSClient` - Main API bridge
+  - `sensoryCortex` - Sensory input collection
+  - `codex` - Memory/knowledge storage
+  - `beeRegistry` - Bee registration and heartbeat
+  - `temporalService` - Workflow orchestration
+  - `liteLLMService` - AI Gateway
+  - `qdrantService` - Vector database
+  - `centrifugoService` - Real-time streaming
+
+- **Authentication:** Supabase JWT is automatically passed to Colony OS via `colonyOSClient.getAuthToken()`
+
+- **Initialization:** Services initialize automatically in `App.js` on app start
+
+### 3. Localization & Tone (Quebec Context)
+
+- **Primary Language:** French (Quebec/Joual)
+
+- **Tone:** Informal, authentic, "Québécois"
+
+- **UI Text:**
+  - DO NOT say: "Télécharger" or "Soumettre" (too formal/European)
+  - DO SAY: "Embarque," "Envoye," "Gosse pas," "Oups," "Réessaye, stp"
+  - Use Joual expressions naturally: "tsé", "pis", "ben", "là", "faque", "coudonc"
+
+- **Error Messages:** Keep them friendly and in Joual:
+  - ✅ "Oups, ça a pas marché. Réessaye, stp."
+  - ✅ "On peut pas charger les commentaires là, réessaye plus tard."
+  - ❌ "Error loading comments. Please try again."
+
+- **Currency/Format:** Use standard Quebec formatting (e.g., 10,00 $)
+
+### 4. Supabase Integration
+
+- **Client:** Use the singleton from `src/lib/supabase.js`
+- **RLS:** All database access respects Row Level Security policies
+- **Realtime:** Use `src/lib/realtime.js` helpers for subscriptions
+- **Storage:** Upload to `publications` bucket, use signed URLs for private access
+- **Auth:** Email/password with email confirmation enabled
+
+### 5. File Structure
+
+```
+zyeute/
+├── lib/
+│   ├── services/        # Colony OS service clients
+│   ├── sensory/         # Sensory Cortex (The Body)
+│   ├── memory/          # The Codex (Memory)
+│   └── mind/            # Semantic Router (The Mind)
+├── src/
+│   ├── components/      # Reusable UI components
+│   ├── screens/         # Screen components
+│   ├── navigation/      # Navigation configs
+│   ├── lib/             # Supabase, realtime utilities
+│   └── theme/           # Colors, styling constants
+├── scripts/             # Utility scripts
+└── App.js               # Main app entry, service initialization
+```
+
+### 6. AI & Codex Workflow
+
+- **Iterative Building:** When asking for large features, break them down:
+  1. UI Skeleton → 
+  2. Logic Hooks → 
+  3. Colony OS Integration → 
+  4. Error Handling
+
+- **Error Handling:** 
+  - Colony OS agents might be slow. Always implement optimistic UI updates (show the change instantly, sync in background)
+  - Use try/catch with user-friendly Joual error messages
+  - Non-critical operations (telemetry, cost tracking) should fail gracefully
+
+- **Context:** Always reference existing files using `@filename` or file paths so AI understands the architecture
+
+## 🚫 Critical Rules (Do Not Ignore)
+
+1. **Never** expose API keys in the code. Use `process.env` or Expo environment variables (`EXPO_PUBLIC_*`)
+
+2. **Never** suggest `react-router-dom`; strictly use React Navigation
+
+3. **Never** write class components. Functional components + Hooks only
+
+4. **Never** bypass Supabase RLS policies. All database access must respect RLS
+
+5. **Always** use the existing service clients in `lib/services/` - don't create new direct API calls to Colony OS
+
+6. **Always** initialize services in `App.js` with proper error handling (non-critical failures should not break the app)
+
+7. **Always** use Quebec French (Joual) for user-facing text
+
+8. **Validation:** Validate data before sending to Colony OS or Supabase
+
+## 🐝 Colony OS Patterns
+
+### Sensory Input Flow
+```javascript
+// Sensory Cortex automatically collects user interactions
+// But you can manually sense custom actions:
+import { sensoryCortex } from '../lib/sensory/sensory-cortex';
+
+await sensoryCortex.senseUserAction('screen_view', {
+  screen_name: 'ProfileScreen',
+  user_id: userId,
+});
+```
+
+### Memory Storage
+```javascript
+// Store patterns and preferences
+import { codex } from '../lib/memory/codex';
+
+await codex.rememberPattern(userId, 'engagement_time', {
+  preferredHours: [18, 19, 20],
+  confidence: 0.85,
+});
+```
+
+### Bee Registration
+```javascript
+// Automatic on sign-in, but you can check status:
+import { beeRegistry } from '../lib/services/bee-registry';
+
+if (beeRegistry.registered) {
+  console.log('Bee ID:', beeRegistry.beeId);
+}
+```
+
+## 📚 Key Files to Reference
+
+- `App.js` - Service initialization, auth flow
+- `lib/services/colony-os-client.js` - Main Colony OS API bridge
+- `lib/services/bee-registry.js` - Bee registration and heartbeat
+- `lib/sensory/sensory-cortex.js` - Sensory input collection
+- `lib/memory/codex.js` - Knowledge storage and retrieval
+- `src/lib/supabase.js` - Supabase client configuration
+- `src/lib/realtime.js` - Realtime subscription helpers
+- `COLONY_OS_STATUS.md` - Integration status and documentation
+
+## 🎯 Development Workflow
+
+1. **Context First:** Always ensure AI has context by referencing files
+2. **Iterative:** Break large features into small, testable steps
+3. **Review:** Always review AI-generated code before applying
+4. **Test:** Test Colony OS integrations with fallback handling
+5. **Document:** Update `COLONY_OS_STATUS.md` when adding new integrations
+
+---
+
+**Remember:** Zyeuté is a Bee in The Hive. It senses, remembers, and learns - but the heavy processing happens in Colony OS. Keep the app fast, responsive, and authentically Quebec.
+
